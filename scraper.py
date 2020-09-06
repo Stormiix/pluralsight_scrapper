@@ -35,7 +35,7 @@ class PluralCourse:
         # Initiate the Browser webdriver
         currentfolder = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
         # Check which operating system is being used !
-        if platform == "linux" or platform == "linux2":
+        if platform in ["linux", "linux2"]:
             # linux
             chrome_driver = currentfolder+"/chromedriver"
         elif platform == "win32":
@@ -100,14 +100,27 @@ class PluralCourse:
             self.createDir(self.output+"/"+slugify(ModuleTitles[i]))
             #For each list items(li) in the each list(ul) ,Get the titles (h3)
             ModuleEpisodesList = [elt.find_element_by_tag_name('h3').text for elt in [elt for elt in Modules[i].find_elements_by_tag_name('li')]]
-            for j in range(len(ModuleEpisodesList)):
-                self.createDir(self.output+"/"+slugify(ModuleTitles[i])+"/"+slugify(ModuleEpisodesList[j]))
+            for item in ModuleEpisodesList:
+                self.createDir(self.output+"/"+slugify(ModuleTitles[i])+"/" + slugify(item))
                 # Get the episode elemnt
-                self.browser.find_element_by_xpath("//*[contains(text(), '"+ModuleEpisodesList[j]+"')]").click()
+                self.browser.find_element_by_xpath(
+                    "//*[contains(text(), '" + item + "')]"
+                ).click()
+
                 time.sleep(self.delay*1.5)
                 self.pausePlayback()
-                print("Downloading : ",slugify(ModuleEpisodesList[j])+".mp4")
-                path =self.output+"/"+slugify(ModuleTitles[i])+"/"+slugify(ModuleEpisodesList[j])+"/"+slugify(ModuleEpisodesList[j])+".mp4"
+                print("Downloading : ", slugify(item) + ".mp4")
+                path = (
+                    self.output
+                    + "/"
+                    + slugify(ModuleTitles[i])
+                    + "/"
+                    + slugify(item)
+                    + "/"
+                    + slugify(item)
+                    + ".mp4"
+                )
+
                 if not os.path.exists(path):
                     self.download(self.getVideoLink(),path)
                 else:
@@ -119,8 +132,7 @@ class PluralCourse:
 
     def getVideoLink(self):
         video_elt = self.browser.find_element_by_tag_name('video')
-        link = video_elt.get_attribute("src")
-        return link
+        return video_elt.get_attribute("src")
 
     def createDir(self,Dir):
         if not os.path.exists(Dir):
